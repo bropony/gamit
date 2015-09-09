@@ -8,50 +8,44 @@
 * @desc SerializerTest.py
 """
 
-from message.gate.gatemsg import *
-from message.db.main_db import *
+from message.db.mongodb.usertables import TUserFan, SeqTUserFan
 from gamit.serialize.serializer import Serializer
+from gamit.serialize.encrypt import simpleDecrypt, simpleEncrypt
 
 def printObj(obj, desc):
-    print("[{}] {}:".format(desc, obj.__class__.__name__))
+    __os = Serializer()
+    __os.startToWrite()
 
-    if isinstance(obj, list):
-        for i in range(len(obj)):
-            printObj(obj[i], "[{}.{}]".format(desc, i))
-    elif isinstance(obj, dict):
-        for k in obj:
-            printObj(obj[k], "[{}.{}]".format(desc, k))
-    else:
-        for key in obj.__slots__:
-            print("\t{}: {}".format(key, obj[key]))
+    userFan = TUserFan()
+    userFan.fanUserId = "4acf3860-4bd4-11e5-b592-989096e48b93"
+    userFan._write(__os)
 
+    __is = Serializer(__os.getBuffer())
+    __is.startToRead()
+    back = TUserFan()
+    back._read(__is)
+
+    print("done...")
 
 def runTest():
-    msg = SMessage()
-    msg.var6 = "what"
-    msg.var7 = datetime.datetime.strptime("2011-01-01 11:11:11", "%Y-%m-%d %H:%M:%S")
-    for i in range(10):
-        msg.intList.append(i)
-        msg.dictStrInt[str(i)] = i
+    __os = Serializer()
+    __os.startToWrite()
+    __os.writeInt(5)
 
-    dictMsg = DictMessage()
-    dictMsg[1] = msg
-    dictMsg[2] = msg
+    fanList = SeqTUserFan()
 
-    printObj(dictMsg, "SRC")
+    userFan = TUserFan()
+    userFan.fanUserId = "4acf3860-4bd4-11e5-b592-989096e48b93"
+    userFan.myUserId = "a9835e44-48a6-11e5-9679-989096e48b93"
+    fanList.append(userFan)
+    fanList._write(__os)
+    res = simpleEncrypt(__os.getBuffer())
 
-    os = Serializer()
-    os.startToWrite()
-    dictMsg._write(os)
+    __is = Serializer(simpleDecrypt(res))
+    __is.startToRead()
+    msg = __is.readInt()
 
-    _is = Serializer(os.getBuffer())
-    _is.startToRead()
-    backDicMsg = DictMessage()
-    backDicMsg._read(_is)
-    printObj(backDicMsg, "BACK")
+    back = SeqTUserFan()
+    back._read(__is)
 
-    js = dictMsg._toJson()
-    jsBack = DictMessage()
-    jsBack._fromJson(js)
-
-    printObj(jsBack, "JSSS")
+    print("done...")

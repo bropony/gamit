@@ -7,7 +7,7 @@
 *
 * @desc message.py
 """
-from message.gate.command import ETestCommand
+
 from messagehandler.testmessagehandler import TestMessageHandler
 from gamit.singleton.singleton import Singleton
 from gamit.message.messagemanager import MessageManager
@@ -15,5 +15,5 @@ from gamit.message.messagemanager import MessageManager
 class MessageSetting(Singleton):
     @staticmethod
     def initMessangeHandler():
-        MessageManager.addCommandHandler(ETestCommand.FirstMessage, TestMessageHandler())
+        pass
 

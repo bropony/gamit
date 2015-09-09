@@ -8,11 +8,16 @@
 * @desc proxy.py
 """
 from gamit.singleton.singleton import Singleton
+from message.gate.ilogin import ILoginProxy
+from message.gate.ipostoper import IPostOperProxy
+from message.gate.iuserinfo import IUserInfoProxy
 from message.gate.itest import ITestProxy
 
 class ProxySetting(Singleton):
     @staticmethod
     def initGateProxy(client):
-        client.addProxy(ITestProxy("ITest"))
-
+        client.addProxy(ILoginProxy())
+        client.addProxy(IPostOperProxy())
+        client.addProxy(IUserInfoProxy())
+        client.addProxy(ITestProxy())
 #
