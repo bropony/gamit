@@ -12,11 +12,16 @@ from gamit.message.message import MessageBlock
 from gamit.log.logger import Logger
 
 class MongoTable:
-    def __init__(self, name, msgName, index, insert_only):
+    def __init__(self, name, msgName, key, index, insert_only):
         self.table = None
         self.name = name
         self.msgName = msgName
-        self.index = index
+        self.key = key
+        if index:
+            self.indexes = index.split(",")
+        else:
+            self.indexes = []
+
         self.insertOnly = insert_only
 
         if not self.msgName:
@@ -30,8 +35,11 @@ class MongoTable:
             return False
 
         if not self.name in db.collection_names():
-            if self.index:
-                db[self.name].create_index([(self.index, ASCENDING)])
+            if self.key:
+                db[self.name].create_index([(self.key, ASCENDING)])
+
+            for idx in self.indexes:
+                db[self.name].create_index([(idx, ASCENDING)])
 
         self.table = db[self.name]
         return True
@@ -41,10 +49,20 @@ class MongoTable:
         code = 10000
         raise Exception(what, code)
 
-    def findMany(self, key):
+    def findMany(self, key, limit=0, skip=0, sort=[]):
         try:
+            kwargs = {}
+            if limit > 0:
+                kwargs["limit"] = limit
+
+            if skip > 0:
+                kwargs["skip"] = skip
+
+            if sort:
+                kwargs["sort"] = sort
+
             res = []
-            for doc in self.table.find({self.index: key}):
+            for doc in self.table.find({self.key: key}, **kwargs):
                 msg = self.msgType()
                 msg._fromJson(doc)
                 res.append(msg)
@@ -54,7 +72,7 @@ class MongoTable:
 
     def findOne(self, key):
         try:
-            doc = self.table.find_one({self.index: key})
+            doc = self.table.find_one({self.key: key})
             if doc:
                 res = self.msgType()
                 res._fromJson(doc)
@@ -64,13 +82,23 @@ class MongoTable:
         except Exception as ex:
             self.raiseError(ex)
 
-    def findManyWithQuey(self, query):
+    def findManyWithQuey(self, query={}, limit=0, skip=0, sort=[]):
         try:
             res = []
             if not isinstance(query, dict):
                 return res
 
-            for doc in self.table.find(query):
+            kwargs = {}
+            if limit > 0:
+                kwargs["limit"] = limit
+
+            if skip > 0:
+                kwargs["skip"] = skip
+
+            if sort:
+                kwargs["sort"] = sort
+
+            for doc in self.table.find(query, **kwargs):
                 msg = self.msgType()
                 msg._fromJson(doc)
                 res.append(msg)
@@ -78,7 +106,7 @@ class MongoTable:
         except Exception as ex:
             self.raiseError(ex)
 
-    def findOneWithQuery(self, query):
+    def findOneWithQuery(self, query={}):
         if not isinstance(query, dict):
             return None
 
@@ -108,7 +136,7 @@ class MongoTable:
                 self.table.insert_manay(docs)
             else:
                 for doc in docs:
-                    self.table.replace_one({self.index: doc[self.index]}, doc, upsert=True)
+                    self.table.replace_one({self.key: doc[self.key]}, doc, upsert=True)
         except Exception as ex:
             self.raiseError(ex)
 
@@ -141,7 +169,11 @@ class MongoTable:
             if delete_one:
                 self.table.delete_one(filter)
             else:
-                self.table.delete_manay(filter)
+                self.table.delete_many(filter)
         except Exception as ex:
             self.raiseError(ex)
+
+    def deleteAll(self):
+        self.delete({})
+
 # end of class Table

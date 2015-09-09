@@ -76,7 +76,7 @@ class WsConnector:
         reactor.connectTCP(self.ip, self.port, factory)
 
         self.factory = factory
-        self.running = True
+        # self.running = True
 
     ####
     def stop(self):

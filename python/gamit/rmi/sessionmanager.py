@@ -27,6 +27,9 @@ class SessionManager(Singleton):
 
     @classmethod
     def getSessionMap(cls):
+        """
+        :rtype: dict[int, gamit.rmi.rmicore.RmiClient]
+        """
         return cls._sessionMap
 
     @classmethod

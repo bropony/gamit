@@ -7,6 +7,7 @@
 import inspect
 import abc
 import datetime
+import traceback
 
 from gamit.log.logger import Logger
 from gamit.serialize.serializer import SerializeError, Serializer
@@ -24,7 +25,7 @@ class RmiServant:
     def setRmiServer(self, rmiServer):
         self.rmiServer = rmiServer
 
-    def invoke(self, connId, name, _is):
+    def invoke(self, connId, name, _is, beforeInvoke):
         if not name in self.methodMap:
             raise SerializeError("{} is not member mthod of {}".format(name, self.name))
 
@@ -32,8 +33,17 @@ class RmiServant:
         try:
             # Logger.logInfo("Incomming", "{}.{}".format(self.name, name))
             msgId = _is.readInt()
+
+            if beforeInvoke:
+                what = beforeInvoke()
+                if what:
+                    raise Exception(what)
+
             self.methodMap[name](connId, msgId, _is)
         except Exception as ex:
+            if not msgId:
+                return
+
             what = ex.args[0] if len(ex.args) > 0 else "UnkownError"
             code = ex.args[1] if len(ex.args) > 1 else 0
 
@@ -43,6 +53,9 @@ class RmiServant:
             if not isinstance(code, int):
                 code = 0
 
+            if code == 0:
+                traceback.print_exc()
+
             _os = Serializer()
             _os.startToWrite()
             _os.writeByte(RmiDataType.RmiException)
@@ -51,6 +64,28 @@ class RmiServant:
             _os.writeInt(code)
 
             self.rmiServer.send(connId, _os.getBuffer())
+
+    def onError(self, connId, _is, ex):
+        what = ex.args[0] if len(ex.args) > 0 else "UnkownError"
+        code = ex.args[1] if len(ex.args) > 1 else 0
+
+        try:
+            msgId = _is.readInt()
+        except:
+            what = "Serializing Error"
+            code = 0
+
+        if not msgId:
+            return
+
+        _os = Serializer()
+        _os.startToWrite()
+        _os.writeByte(RmiDataType.RmiException)
+        _os.writeInt(msgId)
+        _os.writeString(what)
+        _os.writeInt(code)
+
+        self.rmiServer.send(connId, _os.getBuffer())
 
 
 class RmiRequestBase(metaclass=abc.ABCMeta):
@@ -62,6 +97,26 @@ class RmiRequestBase(metaclass=abc.ABCMeta):
         self._os.startToWrite()
         self._os.writeByte(RmiDataType.RmiResponse)
 
+    def error(self, what, code=None):
+        if not self.msgId:
+            return
+
+        if isinstance(what, Exception):
+            ex = what
+            what = ex.args[0]
+            code = ex.args[1]
+        if not code:
+            code = 0
+
+        _os = Serializer()
+        _os.startToWrite()
+        _os.writeByte(RmiDataType.RmiException)
+        _os.writeInt(self.msgId)
+        _os.writeString(what)
+        _os.writeInt(code)
+
+        self.servant.rmiServer.send(self.connId, _os.getBuffer())
+
     def sendout(self):
         self.servant.rmiServer.send(self.connId, self._os.getBuffer())
 
@@ -69,14 +124,17 @@ class RmiRequestBase(metaclass=abc.ABCMeta):
     def response(self):
         pass
 
-
-class RmiProxy:
-    msgId = 0
-
+class _MsgIdBase:
+    _msgIdBase = 0
     @classmethod
     def getMsgId(cls):
-        cls.msgId += 1
-        return cls.msgId
+        cls._msgIdBase += 1
+        return cls._msgIdBase
+
+class RmiProxy:
+    @classmethod
+    def getMsgId(cls):
+        return _MsgIdBase.getMsgId()
 
     def __init__(self, name):
         self.name = name

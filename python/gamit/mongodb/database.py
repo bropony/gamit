@@ -16,6 +16,8 @@ from gamit.mongodb.table import MongoTable
 from gamit.log.logger import Logger
 
 class __Database:
+    SortByIdDesc = [("_id", -1)]
+
     def __call__(self):
         return self
 
@@ -39,15 +41,31 @@ class __Database:
         return True
 
     def findTable(self, tableName):
+        """
+        :rtype: MongoTable
+        """
+
         return self.tableMap.get(tableName)
 
     def findTableByMessageTypeName(self, msgName):
+        """
+        :rtype: MongoTable
+        """
+
         return self.tableMap.get(msgName)
 
     def findTableByMessageObj(self, msgObj):
+        """
+        :rtype: MongoTable
+        """
+
         return self.tableMap.get(msgObj.__class__.__name__)
 
     def findTableByMessageType(self, msgType):
+        """
+        :rtype: MongoTable
+        """
+
         return self.tableMap.get(msgType.__name__)
 
     def start(self):
@@ -121,6 +139,11 @@ class __Database:
         if structKey in attrib:
             struct = attrib[structKey]
 
+        key = ""
+        key_key = "key"
+        if key_key in attrib:
+            key = attrib[key_key]
+
         index = ""
         index_key = "index"
         if index_key in attrib:
@@ -135,11 +158,11 @@ class __Database:
             else:
                 insertOnly = False
 
-        if not insertOnly and not index:
-            Logger.logInfo("__Database.__initDatabase", "index must be specified for non-write-only tables")
+        if not insertOnly and not key:
+            Logger.logInfo("__Database.__initDatabase", "key must be specified for non-write-only tables")
             return False
 
-        table = MongoTable(name, struct, index, insertOnly)
+        table = MongoTable(name, struct, key, index, insertOnly)
         self.tableMap[name] = table
         self.tableMap[struct] = table
 

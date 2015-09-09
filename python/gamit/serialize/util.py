@@ -10,6 +10,8 @@
 
 class ListBase(list):
     def __init__(self, valType, name):
+        super().__init__()
+
         self.valType = valType
         self.name = name
         self.typeError = "Element value of {} must be {} object".format(name, valType.__name__)
@@ -32,6 +34,12 @@ class ListBase(list):
 
         super().append(value)
 
+    def extend(self, iterable):
+        for it in iterable:
+            self.checkValType(it)
+
+        super().extend(iterable)
+
     def insert(self, index, value):
         self.checkValType(value)
 
@@ -39,6 +47,8 @@ class ListBase(list):
 
 class DictBase(dict):
     def __init__(self, keyType, valType, name):
+        super().__init__()
+
         self.keyType = keyType
         self.valType = valType
         self.name = name

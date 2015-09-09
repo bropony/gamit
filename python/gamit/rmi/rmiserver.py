@@ -28,6 +28,7 @@ class RmiServer:
         self.servantMap = {}
         self.connIdSet = set()
         self.messageManager = MessageManager(self)
+        self.clientConnectionCloseCallback = None
 
     def addServant(self, servant):
         self.servantMap[servant.name] = servant
@@ -45,9 +46,20 @@ class RmiServer:
     def onOpen(self, connId):
         self.connIdSet.add(connId)
 
+    def setClientConnectionCloseCallback(self, cb):
+        self.clientConnectionCloseCallback = cb
+
+    def __removeConnId(self, connId):
+        if connId not in self.connIdSet:
+            return
+
+        if self.clientConnectionCloseCallback:
+            self.clientConnectionCloseCallback.onConnectionClose(connId)
+
+        self.connIdSet.remove(connId)
+
     def onClose(self, connId):
-        if connId in self.connIdSet:
-            self.connIdSet.remove(connId)
+        self.__removeConnId(connId)
 
     def onMessage(self, connId, payload, isBinary):
         try:
@@ -66,8 +78,8 @@ class RmiServer:
 
     def close(self, connId, code, reason):
         self.acceptor.close(connId, code, reason)
-        if connId in self.connIdSet:
-            self.connIdSet.remove(connId)
+
+        self.__removeConnId(connId)
 
     def send(self, connId, payload, isBinary=True):
         payload = simpleEncrypt(payload)
@@ -82,18 +94,13 @@ class RmiServer:
 
     def onInvoke(self, connId, _is):
         try:
-            if self.beforeInvoke:
-                bi = self.beforeInvoke
-                what = bi()
-                if what:
-                    raise Exception(what)
-
             interface = _is.readString()
             method = _is.readString()
             if interface in self.servantMap:
-                self.servantMap[interface].invoke(connId, method, _is)
+                self.servantMap[interface].invoke(connId, method, _is, self.beforeInvoke)
             else:
                 raise SerializeError("Servant {} not registered".format(interface))
         except Exception as ex:
             Logger.logInfo(ex)
+            # self.servantMap[interface].onError(connId, _is, ex)
 #end of RmiServer

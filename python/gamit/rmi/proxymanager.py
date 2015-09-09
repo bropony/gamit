@@ -14,12 +14,22 @@ class ProxyManager(Singleton):
 
     @classmethod
     def addProxy(cls, channelType, proxy):
+        """
+        :type channelType: int
+        :type proxy: gamit.rmi.rmicore.RmiProxy
+        """
         if not channelType in cls._proxyMap:
             cls._proxyMap[channelType] = {}
         cls._proxyMap[channelType][proxy.name] = proxy
 
     @classmethod
     def getProxy(cls, channelType, name):
+        """
+        :type channelType: int
+        :type name: str
+        :rtype: gamit.rmi.rmicore.RmiProxy
+        """
+
         if not channelType in cls._proxyMap:
             return None
 

@@ -15,15 +15,19 @@ class __Scheduler:
 
     def schedule(self, timer, data, future, interval):
         """
+        :type timer: TimerBase
+        :type future: int|float|datetime.timedelta|datetime.datetime
+        :type interval: int|float|datetime.timedelta
+
         :brief register and schedule a timer
-        :param timer: instance of class subclasses from TimerBase with onTimeout overwrite
-        :param data: user data in future use. This data will be passed to timer.onTimeout.
-        :param future: @future indicates a latter moment the first onTimeout is called.
+        :param timer: instance of class subclasses from TimerBase with handleTimeout overwrite
+        :param data: user data in future use. This data will be passed to timer.handleTimeout.
+        :param future: @future indicates a latter moment the first handleTimeout is called.
                         four type of obj supported.
                         int or float obj indicates number of seconds since now to @future
                         datetime.datetime indicates the datetime of @future
                         datetime.timedelta indicates a time period since now to @future
-        :param interval: how often in second timer.onTimeout is called.
+        :param interval: how often in second timer.handleTimeout is called.
         :return (ok, reason) When @ok is True, @reason is set to ''.
                             And timer is successfully registered.
                             When @ok is False, timer is not successfully registered by some @reason

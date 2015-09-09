@@ -5,7 +5,9 @@
 *
 * @date 2015/6/3 19:49
 *
-* @desc singleton.py
+* @desc For simple singleton pattern implementation.
+*       Subclasses of class Singleton cannot be initiated.
+*       All members and methods are suggested to be class members and methods.
 """
 
 class Singleton:

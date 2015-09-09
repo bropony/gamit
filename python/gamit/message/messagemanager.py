@@ -10,6 +10,9 @@ class NotACommandHandlerError(Exception):
 
 class __MessageManager:
     def __call__(self, server):
+        """
+        :rtype __MessageManager
+        """
         self.rmiServer = server
         self.clientChannelMap = {}
         return self

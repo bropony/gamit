@@ -9,6 +9,7 @@
 """
 
 import datetime
+import traceback
 
 from gamit.log.logger import Logger
 from gamit.message.messagemanager import MessageManager
@@ -68,8 +69,9 @@ class RmiClient:
         self.isOpen = True
 
         if self.onOpenCallback:
-            cb = self.onOpenCallback
-            cb(*self.openCallArgv)
+            reactor.callLater(0.5, self.onOpenCallback, *self.openCallArgv)
+            #cb = self.onOpenCallback
+            #cb(*self.openCallArgv)
 
     def onClose(self):
         self.isOpen = False
@@ -107,8 +109,16 @@ class RmiClient:
     def onResponse(self, _is):
         msgId = _is.readInt()
         if msgId in self.callbackMap:
-            self.callbackMap[msgId]._onResponse(_is)
-            del self.callbackMap[msgId]
+            callbackObj = self.callbackMap[msgId]
+            del self.callbackMap[msgId]  # remove from cache before handling response
+
+            try:
+                callbackObj._onResponse(_is)
+            except Exception as ex:
+                traceback.print_exc()
+                what = traceback.format_exc()
+                code = -1
+                callbackObj.onError(what, code)
 
     def onError(self, _is):
         msgId = _is.readInt()
@@ -140,7 +150,10 @@ class RmiClient:
 
     def onCall(self, _os, callback):
         self.send(_os.getBuffer(), True)
-        self.callbackMap[callback._msgId] = callback
+
+        if callback:
+            # Logger.log("RmiClient.onCall:", callback._msgId)
+            self.callbackMap[callback._msgId] = callback
 
     def heartbeat(self):
         if self.isOpen:
