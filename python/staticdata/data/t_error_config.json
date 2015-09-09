@@ -1,7 +1,177 @@
 [
     {
-        "errorStr": "被禁用的方法",
+        "errorCode": 10000,
+        "errorName": "ErrorGate_fatalError",
+        "errorStr": "服务器异常"
+    },
+    {
         "errorCode": 10001,
-        "errorName": "ErrorDb_Deprecated"
+        "errorName": "ErrorDb_DbError",
+        "errorStr": "数据库异常"
+    },
+    {
+        "errorCode": 10010,
+        "errorName": "ErrorDb_TableNotFound",
+        "errorStr": "找不到表"
+    },
+    {
+        "errorCode": 20000,
+        "errorName": "ErrorCommon_Deprecated",
+        "errorStr": "禁用的功能"
+    },
+    {
+        "errorCode": 20001,
+        "errorName": "ErrorLogin_InvalidValidationCode",
+        "errorStr": "手机验证码无效"
+    },
+    {
+        "errorCode": 20002,
+        "errorName": "ErrorLogin_InvalidLoginInfo",
+        "errorStr": "账号或者密码不正确"
+    },
+    {
+        "errorCode": 20003,
+        "errorName": "ErrorLogin_EmptyPassword",
+        "errorStr": "密码不能为空"
+    },
+    {
+        "errorCode": 20004,
+        "errorName": "ErrorLogin_loginOperTimeout",
+        "errorStr": "登录超时"
+    },
+    {
+        "errorCode": 20005,
+        "errorName": "ErrorLogin_signupOperTimeout",
+        "errorStr": "操作超时，请重试"
+    },
+    {
+        "errorCode": 20006,
+        "errorName": "ErrorLogin_AccountExists",
+        "errorStr": "账号已存在"
+    },
+    {
+        "errorCode": 20007,
+        "errorName": "ErrorGate_serverBusy",
+        "errorStr": "系统繁忙，请稍后再试"
+    },
+    {
+        "errorCode": 20010,
+        "errorName": "ErrorSignup_invalidAccount",
+        "errorStr": "无效的账号"
+    },
+    {
+        "errorCode": 20011,
+        "errorName": "ErrorSignup_invalidPassword",
+        "errorStr": "无效的密码"
+    },
+    {
+        "errorCode": 20012,
+        "errorName": "ErrorSignup_invalidLoginType",
+        "errorStr": "无效的登录方式"
+    },
+    {
+        "errorCode": 20020,
+        "errorName": "ErrorGate_notLoggedInYet",
+        "errorStr": "请先登录"
+    },
+    {
+        "errorCode": 20021,
+        "errorName": "ErrorGate_invalidNickname",
+        "errorStr": "非法的昵称"
+    },
+    {
+        "errorCode": 20022,
+        "errorName": "ErrorGate_invalidAvatar",
+        "errorStr": "无效的头像"
+    },
+    {
+        "errorCode": 20023,
+        "errorName": "ErrorGate_operTimeout",
+        "errorStr": "操作超时"
+    },
+    {
+        "errorCode": 20024,
+        "errorName": "ErrorGate_avatarSizeTooLarge",
+        "errorStr": "头像图片尺寸超过限制"
+    },
+    {
+        "errorCode": 20030,
+        "errorName": "ErrorGate_noSuchPost",
+        "errorStr": "帖子不存在"
+    },
+    {
+        "errorCode": 20031,
+        "errorName": "ErrorGate_hasUpvotedUserPost",
+        "errorStr": "已经为该贴点过赞"
+    },
+    {
+        "errorCode": 20032,
+        "errorName": "ErrorGate_mentionedUserNotExist",
+        "errorStr": "被提及的用户不存在"
+    },
+    {
+        "errorCode": 20033,
+        "errorName": "ErrorGate_dstCommentNotExisted",
+        "errorStr": "被提及的评论不存在"
+    },
+    {
+        "errorCode": 20034,
+        "errorName": "ErrorGate_hasFollowedThisUser",
+        "errorStr": "已经关注过该用户"
+    },
+    {
+        "errorCode": 20035,
+        "errorName": "ErrorGate_noSuchUser",
+        "errorStr": "用户不存在"
+    },
+    {
+        "errorCode": 20036,
+        "errorName": "ErrorGate_didNotFollowThisUser",
+        "errorStr": "未关注该用户"
+    },
+    {
+        "errorCode": 20040,
+        "errorName": "ErrorGate_invalidGender",
+        "errorStr": "性别选择有误"
+    },
+    {
+        "errorCode": 20041,
+        "errorName": "ErrorGate_invalidBirthday",
+        "errorStr": "生日大于当前时间"
+    },
+    {
+        "errorCode": 20050,
+        "errorName": "ErrorGate_noSuchSysTopic",
+        "errorStr": "话题不存在"
+    },
+    {
+        "errorCode": 20051,
+        "errorName": "ErrorGate_noSuchUpvote",
+        "errorStr": "未点赞"
+    },
+    {
+        "errorCode": 20060,
+        "errorName": "ErrorGate_addressRecipentNameEmpty",
+        "errorStr": "收件人姓名不能为空"
+    },
+    {
+        "errorCode": 20061,
+        "errorName": "ErrorGate_addressRecipentPhoneNumEmpty",
+        "errorStr": "收件人电话不能为空"
+    },
+    {
+        "errorCode": 20062,
+        "errorName": "ErrorGate_addressCityEmpty",
+        "errorStr": "请选择城市"
+    },
+    {
+        "errorCode": 20063,
+        "errorName": "ErrorGate_addressDetailsEmpty",
+        "errorStr": "请填写详地址信息"
+    },
+    {
+        "errorCode": 20064,
+        "errorName": "ErrorGate_addressNotExisted",
+        "errorStr": "无该联系地址"
     }
 ]

@@ -23,12 +23,16 @@ from gamit.log.logger import Logger
 # Config Manager imports start here
 #
 from staticdata.manager.ErrorCodeManager import ErrorCodeManager
+from staticdata.manager.ConstValueManager import ConstValueManager
+from staticdata.manager.MessageConfigManager import MessageConfigManager
+from staticdata.manager.TopicTagConfigManager import TopicTagConfigManager
 
 def _loadConfig(configManager, filePath):
     Logger.logInfo("Begin of loading {}".format(filePath))
     absPath = os.path.join(__datadir, filePath)
 
     if not configManager.loadConfig(absPath):
+        Logger.logInfo("Loading {} failed.".format(filePath))
         return False
 
     Logger.logInfo("End of loading {}".format(filePath))
@@ -36,6 +40,15 @@ def _loadConfig(configManager, filePath):
 
 def loadConfigs():
     if not _loadConfig(ErrorCodeManager, "t_error_config.json"):
+        return False
+
+    if not _loadConfig(ConstValueManager, "t_const_config.json"):
+        return False
+
+    if not _loadConfig(MessageConfigManager, "t_message_config.json"):
+        return False
+
+    if not _loadConfig(TopicTagConfigManager, "t_topic_tag.json"):
         return False
 
     return True

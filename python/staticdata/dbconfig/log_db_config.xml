@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <!-- table configs -->
+    <!-- please add configs in alphabetical orders !-->
+    <table name="t_log_login" struct="TLogLogin" insert_only="true"></table>
+    <table name="t_log_refresh_sys_topic" struct="TLogRefreshSysTopic" insert_only="true"></table>
+    <table name="t_log_refresh_user_post" struct="TLogRefreshUserPost" insert_only="true"></table>
+    <table name="t_log_signup" struct="TLogSignup" insert_only="true"></table>
+    <table name="t_log_sys_topic_oper" struct="TLogSysTopicOper" insert_only="true"></table>
+    <table name="t_log_user_post_oper" struct="TLogUserPostOper" insert_only="true"></table>
+</root>

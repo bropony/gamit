@@ -1,0 +1,12 @@
+[
+    {
+        "constName": "ResetPasswordValidationCodeLifeSpan",
+        "intValue": 15,
+        "shortDesc": "修改手机注册用户的密码，手机验证码有效时间。单位：分钟"
+    },
+    {
+        "constName": "SignupPhoneValidationCodeLifeSpan",
+        "intValue": 30,
+        "shortDesc": "手机用户注册，手机验证码有效时间。单位：分钟"
+    }
+]

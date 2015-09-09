@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
-    <!-- table configs -->
-    <table name="an_rmi_test" struct="AnRmiTest" index="ip" insert_only="false"></table>
+    <!--
+        table configs
+        please add configs in alphabetical orders
+        key - default index
+        index - list of index
+    !-->
+
+    <!-- system tables -->
+    <table name="t_system_command" struct="TSystemCommand" insert_only="true"></table>
+    <table name="t_system_command_log" struct="TSystemCommandLog" insert_only="true"></table>
+
+    <!-- user tables -->
+    <table name="t_family_member" struct="TFamilyMember" key="userId" insert_only="false"></table>
+    <table name="t_user_address" struct="TUserAddress" key="userId" insert_only="false"></table>
+    <table name="t_user_basic" struct="TUserBasic" key="userId" index="account" insert_only="false"></table>
+    <table name="t_user_fan" struct="TUserFan" key="recordId" index="fanUserId,myUserId" insert_only="false"></table>
+    <table name="t_user_image" struct="TUserImage" key="imgKey" insert_only="false"></table>
+    <table name="t_user_property" struct="TUserProperty" key="userId" insert_only="false"></table>
+    <table name="t_user_settings" struct="TUserSettings" key="userId" index="sessionKey" insert_only="false"></table>
+
+
+    <!-- post tables -->
+    <table name="t_sys_topic" struct="TSysTopic" key="topicId" insert_only="false"></table>
+    <table name="t_sys_topic_comment" struct="TSysTopicComment" key="commentId" index="topicId,userId" insert_only="false"></table>
+    <table name="t_user_post" struct="TUserPost" key="postId" index="userId" insert_only="false"></table>
+    <table name="t_user_post_comment" struct="TUserPostComment" key="commentId" index="postId,userId" insert_only="false"></table>
 </root>

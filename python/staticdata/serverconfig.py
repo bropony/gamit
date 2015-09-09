@@ -12,6 +12,9 @@ import xml.etree.ElementTree as xmlParser
 import os.path
 import sys
 
+# this line does lots of things. Don't remove it.
+import message.includeall
+
 class Channel:
     def __init__(self, type, id, ip, port):
         self.type = type
@@ -25,6 +28,8 @@ class __ServerConfig:
         self.portVar = ""
         self.dbVer = ""
         self.isDebug = False
+        self.isValidationCodeEnabled = True
+        self.isTestInterfaceEnabled = False
 
         self.channels = {}
 
@@ -46,6 +51,10 @@ class __ServerConfig:
                 self.dbVer = text
             elif tag == "is_debug":
                 self.isDebug = False if text == "False" else True
+            elif tag == "enable_validation_code":
+                self.isValidationCodeEnabled = False if text == "False" else True
+            elif tag == "enable_test_interface":
+                self.isTestInterfaceEnabled = True if text == "True" else False
 
         channelTree = xmlParser.parse(channelConfig)
         root = channelTree.getroot()

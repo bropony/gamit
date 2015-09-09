@@ -1,0 +1,20 @@
+[
+    {
+        "msgContent": "{0}（家庭e柜手机动态码，{1}分钟内有效，请完成验证），如非本人操作，请忽略此短信。（归一科技）",
+        "msgId": 1,
+        "msgKey": "regist_validation",
+        "shortDesc": "手机方式注册账号验证码短信内容。{0}验证码，{1}为有效时间"
+    },
+    {
+        "msgContent": "{0}(修改账号密码验证，{}分钟内有效)",
+        "msgId": 2,
+        "msgKey": "reset_pswd_validation",
+        "shortDesc": "修改密码手机短信验证码"
+    },
+    {
+        "msgContent": "尊敬的用户，您的手机动态验证码为{}.\r为保证个人账户安全请勿泄露他人",
+        "msgId": 3,
+        "msgKey": "test_validation",
+        "shortDesc": "测试用验证码"
+    }
+]
