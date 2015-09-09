@@ -8,11 +8,11 @@
 * @desc preinvoke.py
 """
 
-from logic.connection.dbcache import ConnectionInfo
+from logic.connection.connectioninfo import ConnectionInfo
 
 class Preinvoke:
     def __call__(self, *args, **kwargs):
-        if not ConnectionInfo.isDbCacheOpen():
-            return "Database Not Initiated"
+        if not ConnectionInfo.isDbLogOpen():
+            return "LogDb Not Initiated"
 
         return None

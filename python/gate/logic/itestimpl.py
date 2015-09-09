@@ -1,44 +1,58 @@
 """
-* @name itestimpl.py
-*
-* @author ahda86@gmail.com
-*
-* @date 2015/6/5 11:18
-*
-* @desc itestimpl.py
+@author: mahanzhou
+@date: 8/25/15
+@file: 
+@desc:
+
 """
 
-from message.gate import gatemsg
-from message.gate import itest
-from message.common import publicdef
-from message.gate import command
+import message.gate.itest
+from message.db.mongodb.posttables import TSysTopic
+from message.gate.gatemsg import SSysTopic
+from social.systopicmanager import SysTopicManager
+from gamit.utils.myuuid import MyUuid
+from dbutil.dbsaver import DbSaver
 
-from gamit.message.messagemanager import MessageManager
 
-class ItestImpl(itest.ITestServant):
-    def __init__(self, name):
-        super().__init__(name)
+class Test:
+    """
+    :type a: int
+    :type b: str
+    """
+    def __init__(self):
+        self.a = 10
+        self.b = "test"
 
-    def getIntList(self, size, __request):
-        res = publicdef.SeqInt()
-        for _ in range(size):
-            res.append(_)
-        __request.response(res)
+    __slots__ = dict()
+    __slots__["a"] = int
+    __slots__["b"] = str
 
-        MessageManager.broadcast(command.ETestCommand.FirstMessage, gatemsg.SMessage())
+class ITestImpl(message.gate.itest.ITestServant):
+    def __init__(self):
+        super().__init__()
 
-    def getDictIntString(self, size, __request):
-        res = {}
-        for i in range(size):
-            res[i] = str(i)
+    def addSysTopic(self, newSysTopic, _request):
+        """
+        :type newSysTopic: message.gate.gatemsg.SSysTopic
+        :type _request: message.gate.itest.ITest_Addsystopic_Request
+        """
 
-        __request.response(res)
+        tSysTopic = TSysTopic()
+        tSysTopic.topicId = MyUuid.getUuid()
+        tSysTopic.topicType = newSysTopic.topicType
+        tSysTopic.publisherId = newSysTopic.publisherId
+        tSysTopic.title = newSysTopic.title
+        tSysTopic.content = newSysTopic.content
 
-    def getFloatList(self, size, __request):
-        res = []
-        for i in range(size):
-            res.append(i * 1.1)
+        for imgToken in newSysTopic.images:
+            tSysTopic.imageKeys.append(imgToken.imageKey)
 
-    def signup(self, signup, __request):
-        #raise Exception("Deprecated Method", 0)
-        pass
+        tSysTopic.tags.extend(newSysTopic.tags)
+
+        SysTopicManager.addNewSysTopics([tSysTopic])
+
+        _request.response()
+
+        DbSaver.saveTable(tSysTopic)
+
+
