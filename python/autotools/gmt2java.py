@@ -22,13 +22,16 @@ class Gmt2Java:
     def raiseExcept(what):
         raise Exception(what)
 
-    def __init__(self, structManager, loader):
+    def __init__(self, structManager, loader, enableJson):
         self.structManager = structManager
         self.loader = loader
         self.indent = 0
         self.fjava = None
         self.filename = ""
         self.scopes = []
+        self.isJsonEnabled = enableJson
+        if self.isJsonEnabled:
+            print(".........JsonEnabled............")
 
         self.registTypeList = []
 
@@ -115,10 +118,15 @@ class Gmt2Java:
         self.write()
         self.write()
         self.write("import java.util.Date;")
-        self.write("import java.util.Map;")
         self.write("import java.util.HashMap;")
         self.write("import java.util.Set;")
         self.write("import java.util.Iterator;")
+        if self.isJsonEnabled:
+            self.write("import org.json.JSONArray;")
+            self.write("import org.json.JSONObject;")
+            self.write("import org.json.JSONException;")
+            self.write("import java.text.SimpleDateFormat;")
+
         self.write()
         self.write("import rmi.Serializer;")
         self.write("import rmi.MessageBlock;")
@@ -126,6 +134,7 @@ class Gmt2Java:
             self.write("import rmi.RmiCore;")
             self.write("import rmi.ProxyManager;")
             self.write("import rmi.RmiManager;")
+            self.write("import rmi.RmiErrorDefaultHandler;")
 
         for include in self.loader.includes:
             self.write("import {};".format(include))
@@ -157,6 +166,12 @@ class Gmt2Java:
 
         if isinstance(dataType, Enum):
             return "int"
+
+        if isinstance(dataType, Struct):
+            if self.isJsonEnabled:
+                return dataType.name + "C"
+            else:
+                return dataType.name
 
         return dataType.name
 
@@ -216,6 +231,8 @@ class Gmt2Java:
         self.registTypeList.append(dataType)
 
         className = dataType.name
+        if self.isJsonEnabled:
+            className += "C"
 
         self.write("// class {}".format(className))
         self.write("public static class {} extends MessageBlock.MessageBase".format(className))
@@ -246,8 +263,11 @@ class Gmt2Java:
         self.write()
 
         # fields
+        dataType.hasDateFields = False
         for field in dataType.fields:
             self.write("public {} {};".format(self.getJavaRef(field.type), field.name))
+            if field.type.name == 'date':
+                dataType.hasDateFields = True
         self.write()
 
         # constructor
@@ -317,7 +337,33 @@ class Gmt2Java:
         self.write("public {}()".format(listName))
         self.write("{")
         self.indent += 1
-        self.write("__array = null;")
+        self.write("__array = new {}[0];".format(self.getJavaRef(dataType.type)))
+        self.indent -= 1
+        self.write("}")
+        self.write()
+
+        # constructor
+        self.write("public {}({}[] initArray)".format(listName, self.getJavaRef(dataType.type)))
+        self.write("{")
+        self.indent += 1
+        self.write("__array = initArray;")
+        self.indent -= 1
+        self.write("}")
+        self.write()
+
+        # constructor
+        self.write("public {}(int arraySize)".format(listName))
+        self.write("{")
+        self.indent += 1
+        self.write("arraySize = (arraySize >= 0 ? arraySize : 0);")
+        self.write()
+        self.write("__array = new {}[arraySize];".format(self.getJavaRef(dataType.type)))
+        self.write("for (int i = 0; i < arraySize; i++)")
+        self.write("{")
+        self.indent += 1
+        self.write("__array[i] = {};".format(self.getInitValue(dataType.type)))
+        self.indent -= 1
+        self.write("}")
         self.indent -= 1
         self.write("}")
         self.write()
@@ -327,6 +373,22 @@ class Gmt2Java:
         self.write("{")
         self.indent += 1
         self.write("return __array;")
+        self.indent -= 1
+        self.write("}")
+        self.write()
+
+        self.write("public int getSize()")
+        self.write("{")
+        self.indent += 1
+        self.write("return (__array != null) ? __array.length : 0;")
+        self.indent -= 1
+        self.write("}")
+        self.write()
+
+        self.write("public boolean isEmpty()")
+        self.write("{")
+        self.indent += 1
+        self.write("return (getSize() == 0);")
         self.indent -= 1
         self.write("}")
         self.write()
@@ -370,8 +432,61 @@ class Gmt2Java:
         self.write("}")
         self.write()
 
+        # _fromjson
+        if not self.isJsonEnabled:
+            self.indent -= 1
+            self.write("} //..")
+            self.write()
+            return
+
+        self.write("public void fromJsonArray(String jsonArrayStr) throws JSONException")
+        self.write("{")
+        self.indent += 1
+        self.write("JSONArray jsonArray = new JSONArray(jsonArrayStr);")
+        self.write("int arraySize = jsonArray.length();")
+        self.write("__array = new {}[arraySize];".format(self.getJavaRef(dataType.type)))
+        if dataType.type.hasDateFields:
+            self.write("SimpleDateFormat dtFmt = new SimpleDateFormat(\"yyyy-MM-dd HH:mm:ss\");")
+        self.write()
+        self.write("for (int i = 0; i < arraySize; i++)")
+        self.write("{")
+        self.indent += 1
+        self.write("JSONObject jsonObject = jsonArray.getJSONObject(i);")
+        self.write("{0} newObj = new {0}();".format(self.getJavaRef(dataType.type)))
+        self.write()
+        for field in dataType.type.fields:
+            if field.type.name == "bool":
+                self.write('newObj.{0} = jsonObject.optBoolean("{0}", false);'.format(field.name))
+            elif field.type.name == "int":
+                self.write('newObj.{0} = jsonObject.optInt("{0}", 0);'.format(field.name))
+            elif field.type.name == "long":
+                self.write('newObj.{0} = jsonObject.optLong("{0}", (long)0);'.format(field.name))
+            elif field.type.name == "float":
+                self.write('newObj.{0} = (float)jsonObject.optDouble("{0}", 0.0);'.format(field.name))
+            elif field.type.name == "double":
+                self.write('newObj.{0} = jsonObject.optDouble("{0}", 0.0);'.format(field.name))
+            elif field.type.name == "date":
+                self.write('String dtString{0} = jsonObject.optString("{0}", "1979-01-01 00:00:00");'.format(field.name))
+                self.write("try{")
+                self.indent += 1
+                self.write("newObj.{0} = dtFmt.parse(dtString{0});".format(field.name))
+                self.indent -= 1
+                self.write("}catch (Exception ex){}")
+            elif field.type.name == "string":
+                self.write('newObj.{0} = jsonObject.optString("{0}", "");'.format(field.name))
+            else:
+                self.raiseExcept("DateType not supported in json parsing: " + field.name)
+            self.write()
+        self.write("__array[i] = newObj;")
         self.indent -= 1
         self.write("}")
+
+        self.indent -= 1
+        self.write("}")
+        self.write()
+
+        self.indent -= 1
+        self.write("} // end of " + listName)
         self.write()
 
     def getDictKeyType(self, dataType):
@@ -405,7 +520,7 @@ class Gmt2Java:
         self.indent += 1
 
         # member
-        self.write("private Map<{}, {}> __map;".format(keyRef, valRef))
+        self.write("private HashMap<{}, {}> __map;".format(keyRef, valRef))
         self.write()
 
         # constructor
@@ -417,8 +532,17 @@ class Gmt2Java:
         self.write("}")
         self.write()
 
+        # constructor
+        self.write("public {}(HashMap<{}, {}> initMap)".format(dictName, keyRef, valRef))
+        self.write("{")
+        self.indent += 1
+        self.write("__map = initMap;")
+        self.indent -= 1
+        self.write("}")
+        self.write()
+
         # getter
-        self.write("public Map<{}, {}> getMap()".format(keyRef, valRef))
+        self.write("public HashMap<{}, {}> getMap()".format(keyRef, valRef))
         self.write("{")
         self.indent += 1
         self.write("return __map;")
@@ -509,6 +633,12 @@ class Gmt2Java:
         self.write("{")
         self.indent += 1
 
+        self.write("/*")
+        self.write("* RmiErrorDefaultHandler.onError() will be called before onError()")
+        self.write("* when useDefaultErrorHandler is true;")
+        self.write("*/")
+        self.write("protected boolean useDefaultErrorHandler = true;")
+        self.write()
         # ctor
         self.write("public {}()".format(className))
         self.write("{")
@@ -553,6 +683,13 @@ class Gmt2Java:
         self.write("{")
         self.indent += 1
         self.write("onError(what, code);")
+        self.write()
+        self.write("if (useDefaultErrorHandler)")
+        self.write("{")
+        self.indent += 1
+        self.write("RmiErrorDefaultHandler.onError(what, code);")
+        self.indent -= 1
+        self.write("}")
         self.indent -= 1
         self.write("}")
         self.write()
@@ -628,7 +765,7 @@ class Gmt2Java:
         self.write("public void {}({} __response".format(method.name, callbackName), False)
         for field in method.infields:
             self.fjava.write(", {} {}".format(self.getJavaRef(field.type), field.name))
-        self.fjava.write(")")
+        self.fjava.write(")\n")
         self.write("{")
         self.indent += 1
 
@@ -638,9 +775,20 @@ class Gmt2Java:
         self.write("__os.write(getName());")
         self.write("__os.write(new String(\"{}\"));".format(method.name))
         self.write()
+        self.write("if (__response != null)")
+        self.write("{")
+        self.indent += 1
         self.write("int __msgId = MessageBlock.getMsgId();")
         self.write("__response.setMsgId(__msgId);")
         self.write("__os.write(__msgId);")
+        self.indent -= 1
+        self.write("}")
+        self.write("else")
+        self.write("{")
+        self.indent += 1
+        self.write("__os.write(0);")
+        self.indent -= 1
+        self.write("}")
 
         if method.infields:
             self.write()
@@ -709,7 +857,7 @@ def main():
                       dest="outRootDir")
     parser.add_option("-f", "--file", dest="sources", action="append",
                       help="relative path of source gmt file. Multi-assignation is allowed.")
-    #parser.add_option("-h","--help", help="show this message", action="store_false")
+    parser.add_option("-j","--json", help="support json", dest="enable_json", action="store_true")
 
     options, args = parser.parse_args()
 
@@ -721,6 +869,7 @@ def main():
     inRootDir = options.inRootDir or "."
     outRootDir = options.outRootDir or "."
     sources = options.sources or []
+    enable_json = options.enable_json
 
     if not sources:
         return
@@ -730,10 +879,11 @@ def main():
     typeList = []
     for f in sources:
         loader = structManager.loadFile(f)
-        gmt = Gmt2Java(structManager, loader)
+        gmt = Gmt2Java(structManager, loader, enable_json)
         gmt.generate()
 
-        typeList.extend(gmt.registTypeList)
+        if not enable_json:
+            typeList.extend(gmt.registTypeList)
 
     processRegist(outRootDir, scope, typeList)
 

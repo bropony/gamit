@@ -33,6 +33,7 @@ def table2gmt(name, fields, gmtOutDir, pyOutDir, namespace):
     fout.write("#\n# This File Is Auto-Generated. Please DON'T Modify It.\n#\n")
     fout.write("struct {}:\n".format(tableName))
     for field in fields:
+        # print(field)
         name = toCamel(field[0], False)
         gmtType = "xxx"
         dbType = field[1]
@@ -52,6 +53,8 @@ def table2gmt(name, fields, gmtOutDir, pyOutDir, namespace):
                 val = int(m.group(1))
                 if val > 11:
                     gmtType = "double"
+        elif dbType.startswith("double"):
+            gmtType = "double"
         elif dbType.startswith("date"):
             gmtType = "date"
 

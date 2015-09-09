@@ -36,6 +36,9 @@ def table2json(name, fields, data, outdir):
     for rec in data:
         js = {}
         for i in range(fieldSize):
+            if not rec[i]:
+                continue
+
             if isinstance(rec[i], datetime.datetime) or isinstance(rec[i], datetime.date):
                 js[fields[i]] = rec[i].strftime("%Y-%m-%d %H:%M:%S")
             else:
@@ -43,8 +46,26 @@ def table2json(name, fields, data, outdir):
         res.append(js)
 
     fout = open(jsFile, "w", encoding='utf-8')
-    json.dump(res, fout, indent="    ", ensure_ascii=False)
+    json.dump(res, fout, indent="    ", ensure_ascii=False, sort_keys=True)
     fout.close()
+
+def table2Java(name, data, outdir):
+    if not os.path.exists(outdir):
+        print("{} not exists".format(outdir))
+        return
+
+    javaFile = open(os.path.join(outdir, "TErrorConfigEnum.java"), "w")
+
+    javaFile.write("package message;\n")
+    javaFile.write("\n")
+    javaFile.write("public class TErrorConfigEnum{\n")
+
+    for rec in data:
+        name = rec[1]
+        code = rec[0]
+        desc = rec[2]
+        javaFile.write("    static public final int {} = {}; // {}\n".format(name, code, desc))
+    javaFile.write("}\n")
 
 def main():
     parser = OptionParser()
@@ -60,6 +81,8 @@ def main():
     parser.add_option("-t", "--table", dest="tables", action="append",
                       help="Table to deal with. By default, all tables are dealt with. "
                            "Multi-assignation is allowed.")
+    parser.add_option("-e", "--error-to-java", help="outdir for generating java file for t_error_config.",
+                      dest="errorToEnum")
 
     options, args = parser.parse_args()
 
@@ -74,6 +97,7 @@ def main():
     passwd = options.passwd or ""
     outDir = options.outDir or "."
     tables = options.tables or []
+    errorToEnum = options.errorToEnum or False
 
     if not database:
         print("database is not specified")
@@ -105,6 +129,10 @@ def main():
 
         print("Dealing with '{}'".format(t))
         table2json(t, fields, data, outDir)
+
+        if errorToEnum and t == "t_error_config":
+            table2Java(t, data, errorToEnum)
+
     print("All jobs done...")
 
 if __name__ == "__main__":

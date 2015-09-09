@@ -227,6 +227,14 @@ class Gmt2Py:
             self.write("__slots__['{}'] = {}".format(fieldName, fieldType))
         self.writeEmptyLine()
 
+        # field names
+        if structType.name.startswith("T"):
+            self.indent = 1
+            self.write("# field names")
+            for field in structType.fields:
+                self.write("fn_{0} = '{0}'".format(field.name))
+            self.writeEmptyLine()
+
         self.indent = 1
         self.write("def __setattr__(self, name, val):")
         self.indent = 2
@@ -245,6 +253,12 @@ class Gmt2Py:
         self.write("return object.__getattribute__(self, key)")
         self.writeEmptyLine()
 
+        # docstring
+        self.indent = 1
+        self.write('"""')
+        for field in structType.fields:
+            self.write("type {}: {}".format(field.name, self.getTypeNotation(field.type)))
+        self.write('"""')
         self.indent = 1
         self.write("def __init__(self):")
         self.indent = 2
@@ -501,6 +515,19 @@ class Gmt2Py:
         for field in method.outfields:
             self.fout.write(", {}".format(field.name))
         self.fout.write("):\n")
+
+        for field in method.outfields:
+            self.indent = 2
+            self.write("if not isinstance({}, {}):".format(field.name, self.getTypePyName(field.type, self.loader.scope)))
+            self.indent = 3
+            self.write("raise Exception(\"{} must be instance of {}\", 0)".format(field.name, field.type.fullname))
+            self.writeEmptyLine()
+
+        self.indent = 2
+        self.write("if not self.msgId:")
+        self.indent = 3
+        self.write("return")
+        self.writeEmptyLine()
         self.indent = 2
         self.write("_os = self._os")
         self.write("_os.writeInt(self.msgId)")
@@ -665,9 +692,19 @@ class Gmt2Py:
             self.write("_os.writeByte(RmiDataType.RmiCall)")
             self.write("_os.writeString(self.name)")
             self.write("_os.writeString('{}')".format(method.name))
+            self.write("if _response:")
+            self.indent = 3
             self.write("_msgId = self.getMsgId()")
             self.write("_os.writeInt(_msgId)")
             self.write("_response._setMsgId(_msgId)")
+            self.indent = 2
+            self.write("else:")
+            self.indent = 3
+            self.write("_os.writeInt(0)")
+            self.indent = 2
+            if method.infields:
+                self.writeEmptyLine()
+
             for field in method.infields:
                 writeExpr = self.getPyWriteExpression(field.type, field.name, self.loader.scope)
                 self.write(writeExpr)
