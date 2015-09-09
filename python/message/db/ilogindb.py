@@ -1,5 +1,5 @@
 #
-# file: itest.py
+# file: ilogindb.py
 #
 # author: ahda86@gmail.com
 #
@@ -19,32 +19,41 @@ import message.common.publicdef
 import message.common.publicmsg
 import message.gate.gateconst
 import message.gate.gatemsg
+import message.db.mongodb.usertables
+import message.db.dataview
 
 
-class ITest_Addsystopic_Request(RmiRequestBase):
+class ILoginDb_Createaccount_Request(RmiRequestBase):
     def __init__(self, connId, msgId, servant):
         super().__init__(connId, msgId, servant)
 
-    def response(self):
+    def response(self, dataView):
+        if not isinstance(dataView, message.db.dataview.SUserDataView):
+            raise Exception("dataView must be instance of message.db.dataview.SUserDataView", 0)
+
         if not self.msgId:
             return
 
         _os = self._os
         _os.writeInt(self.msgId)
+        dataView._write(_os)
 
         self.sendout()
 
-class ITest_Addsystopic_Response(RmiResponseBase):
+class ILoginDb_Createaccount_Response(RmiResponseBase):
     def __init__(self):
         super().__init__()
 
     def _onResponse(self, _is):
+        dataView = message.db.dataview.SUserDataView()
+        dataView._read(_is)
 
-        self.onResponse()
+        self.onResponse(dataView)
 
     @abc.abstractmethod
-    def onResponse(self):
+    def onResponse(self, dataView):
         """
+        :type dataView: message.db.dataview.SUserDataView
         """
         pass
 
@@ -61,42 +70,42 @@ class ITest_Addsystopic_Response(RmiResponseBase):
         pass
 
 
-class ITestServant(RmiServant):
-    def __init__(self, name='ITest'):
+class ILoginDbServant(RmiServant):
+    def __init__(self, name='ILoginDb'):
         super().__init__(name)
-        self.methodMap['addSysTopic'] = self._addSysTopic
+        self.methodMap['createAccount'] = self._createAccount
 
-    def _addSysTopic(self, _connId, _msgId, _is):
-        newSysTopic = message.gate.gatemsg.SSysTopic()
-        newSysTopic._read(_is)
-        _request = ITest_Addsystopic_Request(_connId, _msgId, self)
-        self.addSysTopic(newSysTopic, _request)
+    def _createAccount(self, _connId, _msgId, _is):
+        userInfo = message.gate.gatemsg.SSignup()
+        userInfo._read(_is)
+        _request = ILoginDb_Createaccount_Request(_connId, _msgId, self)
+        self.createAccount(userInfo, _request)
 
 
     @abc.abstractmethod
-    def addSysTopic(self, newSysTopic, _request):
+    def createAccount(self, userInfo, _request):
         """
-        :type newSysTopic: message.gate.gatemsg.SSysTopic
-        :type _request: message.gate.itest.ITest_Addsystopic_Request
+        :type userInfo: message.gate.gatemsg.SSignup
+        :type _request: message.db.ilogindb.ILoginDb_Createaccount_Request
         """
         pass
 
-# message.gate.itest.ITestProxy
-class ITestProxy(RmiProxy):
-    def __init__(self, name='ITest'):
+# message.db.ilogindb.ILoginDbProxy
+class ILoginDbProxy(RmiProxy):
+    def __init__(self, name='ILoginDb'):
         super().__init__(name)
 
-    def addSysTopic(self, _response, newSysTopic):
+    def createAccount(self, _response, userInfo):
         """
-        :type _response: ITest_Addsystopic_Response
-        :type newSysTopic: message.gate.gatemsg.SSysTopic
+        :type _response: ILoginDb_Createaccount_Response
+        :type userInfo: message.gate.gatemsg.SSignup
         """
 
         _os = Serializer()
         _os.startToWrite()
         _os.writeByte(RmiDataType.RmiCall)
         _os.writeString(self.name)
-        _os.writeString('addSysTopic')
+        _os.writeString('createAccount')
         if _response:
             _msgId = self.getMsgId()
             _os.writeInt(_msgId)
@@ -104,7 +113,7 @@ class ITestProxy(RmiProxy):
         else:
             _os.writeInt(0)
 
-        newSysTopic._write(_os)
+        userInfo._write(_os)
         self.invoke(_os, _response)
 
 
