@@ -23,7 +23,7 @@ from gamit.mongodb.database import MongoDatabase
 from gamit.timer.schedule import Scheduler
 
 from application import Application
-from logic.timer.ticker import Ticker
+from background.loader import SystemCommandLoder
 
 def main():
     #load server configs
@@ -52,6 +52,12 @@ def main():
         if not MongoDatabase.start():
             Logger.logInfo("Starting mongoDb Failed")
             return
+
+        # Logger.logInfo("starting scheduler...")
+        # Scheduler.start()
+
+        Logger.logInfo("starting system command loader...")
+        SystemCommandLoder.start()
 
         Logger.logInfo("starting app...")
         app.start()

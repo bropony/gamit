@@ -16,7 +16,7 @@ class Ticker(TimerBase):
         super().__init__()
         self.ticks = 0
 
-    def onTimeout(self, data):
+    def handleTimeout(self, data):
         self.ticks += 1
         Logger.logInfo("Ticks:", self.ticks)
 #####

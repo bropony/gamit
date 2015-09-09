@@ -18,8 +18,8 @@ from gamit.rmi.sessionmanager import SessionManager
 
 
 # settings
-from settings.servant import *
-from settings.message import *
+from logic.settings.servant import *
+from logic.settings.message import *
 
 class Application(ApplicationBase):
     def __init__(self, name=None, channelId=0):
