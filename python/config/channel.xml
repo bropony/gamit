@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <root>
+    <!-- channel type
+        1 - service gate
+        2 - db cache
+        3 - db log
+    -->
     <channel type="1" id="1001" ip="public_ip" port="80var" />
     <channel type="1" id="1002" ip="public_ip" port="81var" />
     <channel type="1" id="1003" ip="public_ip" port="82var" />

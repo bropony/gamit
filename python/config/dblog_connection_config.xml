@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<root>
+    <name>gamit_log</name>
+    <ip>192.168.0.168</ip>
+    <port>27017</port>
+    <username></username>
+    <passwd></passwd>
+</root>
