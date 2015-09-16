@@ -414,7 +414,7 @@ public class Serializer {
 	
 	//Date
 	public void write(Date dt){
-		write(dt.getTime());
+		write(dt.getTime() / 1000);
 	}
 	
 	public void write(Date[] dta){
@@ -428,7 +428,7 @@ public class Serializer {
 	public Date readDate(){
 		long dtTime = readLong();
 		
-		Date dt = new Date(dtTime);
+		Date dt = new Date(dtTime * 1000);
 		
 		return dt;
 	}
@@ -516,13 +516,13 @@ public class Serializer {
 	{
 		byte mask = 108;
 		
-		if (_dataSize == 0)
+		if (_dataSize <= 0)
 		{
 			return;
 		}
 		
-		int maxIdx = _dataSize - 1;
 		byte[] data = _buffer.array();
+		int maxIdx = _dataSize - 1;
 		
 		for (int i = 0; i <= maxIdx; i += 2)
 		{
@@ -545,7 +545,7 @@ public class Serializer {
 	
 	private void __encrypt()
 	{
-		if (_dataSize == 0)
+		if (_dataSize <= 0)
 		{
 			return;
 		}
@@ -564,16 +564,19 @@ public class Serializer {
 	
 	private void __decrypt()
 	{
-		if (_dataSize == 0)
+		if (_dataSize <= 0)
 		{
 			return;
 		}
 		
 		byte[] data = _buffer.array();
+		
 		for (int i = 0; i < data.length - 1; i++)
 		{
 			data[i] ^= data[i + 1];
 		}
+		
+		_dataSize -= 1;
 	}
 	
 	public void simpleEncrypt()

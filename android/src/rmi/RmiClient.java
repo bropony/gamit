@@ -187,9 +187,9 @@ public class RmiClient{
 		
 		if (null != response)
 		{
-			response.__onResponse(__is);
-			
 			_mapCallback.remove(key);
+			
+			response.__onResponse(__is);
 		}
 	}
 	
@@ -204,9 +204,9 @@ public class RmiClient{
 		RmiCore.RmiResponseBase response = _mapCallback.get(key);
 		if (null != response)
 		{
-			response.__onError(what, code);
-			
 			_mapCallback.remove(key);
+			
+			response.__onError(what, code);
 		}
 	}
 	
@@ -233,9 +233,12 @@ public class RmiClient{
 			__os.simpleEncrypt();
 			
 			_outgoings.add(__os);
-			Integer key = new Integer(__cb.getMsgId());
 			
-			_mapCallback.put(key, __cb);
+			if (__cb != null)
+			{
+				Integer key = new Integer(__cb.getMsgId());
+				_mapCallback.put(key, __cb);
+			}
 		}
 	}
 	
@@ -290,8 +293,9 @@ public class RmiClient{
 					
 				if (cb.isExpired(sinceDt, rmiTimeout))
 				{
-					cb.__onTimeout();
 					_mapCallback.remove(key);
+					
+					cb.__onTimeout();
 				}
 			}
 		}
