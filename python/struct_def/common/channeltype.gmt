@@ -1,0 +1,3 @@
+enum EChannelType:
+    TestServer = 1
+    TestClient = 2
